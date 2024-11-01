@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef DIFFDRIVE_ARDUINO__DIFFBOT_SYSTEM_HPP_
-#define DIFFDRIVE_ARDUINO__DIFFBOT_SYSTEM_HPP_
+#ifndef LOKI_HW_INTERFACE__LOKI_SYSTEM_HPP_
+#define LOKI_HW_INTERFACE__LOKI_SYSTEM_HPP_
 
 #include <memory>
 #include <string>
@@ -29,14 +29,14 @@
 #include "rclcpp/time.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-#include "diffdrive_arduino/visibility_control.h"
+#include "loki_hw_interface/visibility_control.h"
 
-#include "diffdrive_arduino/arduino_comms.hpp"
-#include "diffdrive_arduino/wheel.hpp"
+#include "loki_hw_interface/arduino_comms.hpp"
+#include "loki_hw_interface/wheel.hpp"
 
-namespace diffdrive_arduino
+namespace loki_hw_interface
 {
-class DiffDriveArduinoHardware : public hardware_interface::SystemInterface
+class LokiHardware : public hardware_interface::SystemInterface
 {
 
 struct Config
@@ -56,40 +56,40 @@ struct Config
 
 
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(DiffDriveArduinoHardware);
+  RCLCPP_SHARED_PTR_DEFINITIONS(LokiHardware);
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn on_init(
     const hardware_interface::HardwareInfo & info) override;
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn on_cleanup(
     const rclcpp_lifecycle::State & previous_state) override;
 
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::return_type read(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  DIFFDRIVE_ARDUINO_PUBLIC
+  LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::return_type write(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
@@ -101,6 +101,6 @@ private:
   Wheel wheel_r_;
 };
 
-}  // namespace diffdrive_arduino
+}  // namespace loki_hw_interface
 
-#endif  // DIFFDRIVE_ARDUINO__DIFFBOT_SYSTEM_HPP_
+#endif  // LOKI_HW_INTERFACE__LOKI_SYSTEM_HPP_

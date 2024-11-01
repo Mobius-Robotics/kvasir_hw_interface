@@ -1,5 +1,5 @@
-#ifndef DIFFDRIVE_ARDUINO_ARDUINO_COMMS_HPP
-#define DIFFDRIVE_ARDUINO_ARDUINO_COMMS_HPP
+#ifndef LOKI_HW_INTERFACE_ARDUINO_COMMS_HPP
+#define LOKI_HW_INTERFACE_ARDUINO_COMMS_HPP
 
 // #include <cstring>
 #include <sstream>
@@ -115,4 +115,4 @@ private:
     int timeout_ms_;
 };
 
-#endif // DIFFDRIVE_ARDUINO_ARDUINO_COMMS_HPP
+#endif // LOKI_HW_INTERFACE_ARDUINO_COMMS_HPP
