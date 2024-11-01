@@ -3,7 +3,8 @@
          type="loki_hw_interface::LokiHardware"
          base_class_type="hardware_interface::SystemInterface">
     <description>
-      The ros2_control DiffBot example using a system hardware interface-type. It uses velocity command and position state interface. The example is the starting point to implement a hardware interface for differential-drive mobile robots.
+      Hardware interface for the Loki robot using a system hardware interface type. It provides velocity command and position state interfaces for controlling the robot's wheels and actuators. This hardware interface communicates with the Loki robot's hardware via a serial connection, enabling control of the robot's actuators and retrieval of sensor data.
     </description>
   </class>
 </library>
+

@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>loki_hw_interface</name>
-  <version>0.0.0</version>
-  <description>Demo package of `ros2_control` hardware for DiffBot.</description>
+  <version>1.0.0</version>
+  <description>
+    Hardware interface package for the Loki robot using `ros2_control`. This package provides a hardware interface for controlling the Loki robot's wheels and actuators via a serial connection.
+  </description>
 
-  <maintainer email="denis.stogl@stoglrobotics.de">Dr.-Ing. Denis Štogl</maintainer>
-  <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>
-  <maintainer email="christoph.froehlich@ait.ac.at">Christoph Froehlich</maintainer>
+  <maintainer email="PurpleMyst@users.noreply.github.com">PurpleMyst</maintainer>
 
-  <author email="denis.stogl@stoglrobotics.de">Dr.-Ing. Denis Štogl</author>
+  <maintainer email="PurpleMyst@users.noreply.github.com">PurpleMyst</maintainer>
+  <author email="denis.stogl@stoglrobotics.de">Dr.-Ing. Denis Stogl</author>
+  <author email="bence.magyar.robotics@gmail.com">Bence Magyar</author>
+  <author email="christoph.froehlich@ait.ac.at">Christoph Froehlich</author>
 
   <license>Apache-2.0</license>
 
@@ -35,3 +37,4 @@
     <build_type>ament_cmake</build_type>
   </export>
 </package>
+

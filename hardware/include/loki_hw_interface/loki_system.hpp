@@ -1,4 +1,8 @@
-// Copyright 2021 ros2_control Development Team
+// Copyright 2021
+// ROS 2 Control Development Team
+//
+// Modifications copyright 2024
+// PurpleMyst
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -6,61 +10,40 @@
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Modifications:
+// - Updated the hardware interface to communicate with the Loki robot hardware via serial connection.
+// - Removed unnecessary methods and adjusted the implementation to fit the Loki robot's architecture.
+// - Implemented custom methods for reading positions and velocities directly in radians and radians per second.
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef LOKI_HW_INTERFACE__LOKI_SYSTEM_HPP_
-#define LOKI_HW_INTERFACE__LOKI_SYSTEM_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
+#include <tuple>
 #include <vector>
 
-#include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
-#include "rclcpp/clock.hpp"
-#include "rclcpp/duration.hpp"
 #include "rclcpp/macros.hpp"
-#include "rclcpp/time.hpp"
-#include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
-#include "rclcpp_lifecycle/state.hpp"
 #include "loki_hw_interface/visibility_control.h"
 
-#include "loki_hw_interface/arduino_comms.hpp"
-#include "loki_hw_interface/wheel.hpp"
+#include "local_nucleo_interface.hpp"
 
-namespace loki_hw_interface
-{
-class LokiHardware : public hardware_interface::SystemInterface
-{
+namespace loki_hw_interface {
 
-struct Config
-{
-  std::string left_wheel_name = "";
-  std::string right_wheel_name = "";
-  float loop_rate = 0.0;
-  std::string device = "";
-  int baud_rate = 0;
-  int timeout_ms = 0;
-  int enc_counts_per_rev = 0;
-  int pid_p = 0;
-  int pid_d = 0;
-  int pid_i = 0;
-  int pid_o = 0;
-};
-
-
+class LokiHardware : public hardware_interface::SystemInterface {
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(LokiHardware);
 
   LOKI_HW_INTERFACE_PUBLIC
-  hardware_interface::CallbackReturn on_init(
-    const hardware_interface::HardwareInfo & info) override;
+  hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override;
 
   LOKI_HW_INTERFACE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
@@ -69,38 +52,42 @@ public:
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   LOKI_HW_INTERFACE_PUBLIC
-  hardware_interface::CallbackReturn on_configure(
-    const rclcpp_lifecycle::State & previous_state) override;
+  hardware_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State &previous_state) override;
 
   LOKI_HW_INTERFACE_PUBLIC
-  hardware_interface::CallbackReturn on_cleanup(
-    const rclcpp_lifecycle::State & previous_state) override;
-
+  hardware_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State &previous_state) override;
 
   LOKI_HW_INTERFACE_PUBLIC
-  hardware_interface::CallbackReturn on_activate(
-    const rclcpp_lifecycle::State & previous_state) override;
+  hardware_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State &previous_state) override;
 
   LOKI_HW_INTERFACE_PUBLIC
-  hardware_interface::CallbackReturn on_deactivate(
-    const rclcpp_lifecycle::State & previous_state) override;
+  hardware_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State &previous_state) override;
 
   LOKI_HW_INTERFACE_PUBLIC
-  hardware_interface::return_type read(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  hardware_interface::CallbackReturn on_error(const rclcpp_lifecycle::State &previous_state) override;  // Added on_error method
 
   LOKI_HW_INTERFACE_PUBLIC
-  hardware_interface::return_type write(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override;
+  hardware_interface::return_type read(const rclcpp::Time &time, const rclcpp::Duration &period) override;
+
+  LOKI_HW_INTERFACE_PUBLIC
+  hardware_interface::return_type write(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
 private:
+  struct Config {
+    std::string wheel1_name = "";
+    std::string wheel2_name = "";
+    std::string wheel3_name = "";
+    int baud_rate = 115200;
+    int timeout_ms = 10;
+  };
 
-  ArduinoComms comms_;
   Config cfg_;
-  Wheel wheel_l_;
-  Wheel wheel_r_;
+  std::unique_ptr<LocalNucleoInterface> comms_;
+
+  std::tuple<double, double, double> wheel_positions_;
+  std::tuple<double, double, double> wheel_velocities_;
+  std::tuple<double, double, double> wheel_commands_;
 };
 
 }  // namespace loki_hw_interface
 
-#endif  // LOKI_HW_INTERFACE__LOKI_SYSTEM_HPP_
