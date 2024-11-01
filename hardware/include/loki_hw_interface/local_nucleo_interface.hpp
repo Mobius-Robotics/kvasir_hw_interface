@@ -6,7 +6,7 @@
 
 class LocalNucleoInterface {
 public:
-    LocalNucleoInterface(int baud_rate = 115200, int timeout_ms = 10);
+    LocalNucleoInterface(int timeout_ms = 10);
     ~LocalNucleoInterface();
 
     void set_servo_angle(int channel, float angle);

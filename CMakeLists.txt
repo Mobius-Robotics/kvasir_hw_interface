@@ -25,6 +25,7 @@ add_library(
   loki_hw_interface
   SHARED
   hardware/loki_system.cpp
+  hardware/local_nucleo_interface.cpp
 )
 target_compile_features(loki_hw_interface PUBLIC cxx_std_17)
 target_include_directories(loki_hw_interface PUBLIC

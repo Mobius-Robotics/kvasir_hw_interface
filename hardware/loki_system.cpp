@@ -41,7 +41,6 @@ hardware_interface::CallbackReturn LokiHardware::on_init(const hardware_interfac
   cfg_.wheel1_name = info_.hardware_parameters["wheel1_name"];
   cfg_.wheel2_name = info_.hardware_parameters["wheel2_name"];
   cfg_.wheel3_name = info_.hardware_parameters["wheel3_name"];
-  cfg_.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
   cfg_.timeout_ms = std::stoi(info_.hardware_parameters["timeout_ms"]);
 
   // Initialize positions, velocities, and commands
@@ -51,6 +50,9 @@ hardware_interface::CallbackReturn LokiHardware::on_init(const hardware_interfac
 
   // Check joints
   for (const hardware_interface::ComponentInfo &joint : info_.joints) {
+	  if (joint.name != cfg_.wheel1_name && 
+	      joint.name != cfg_.wheel2_name && 
+	      joint.name != cfg_.wheel3_name) continue;
     if (joint.command_interfaces.size() != 1) {
       RCLCPP_FATAL(rclcpp::get_logger("LokiHardware"),
                    "Joint '%s' has %zu command interfaces found. 1 expected.",
@@ -133,7 +135,7 @@ hardware_interface::CallbackReturn LokiHardware::on_configure(const rclcpp_lifec
   RCLCPP_INFO(rclcpp::get_logger("LokiHardware"), "Configuring ...please wait...");
 
   try {
-    comms_ = std::make_unique<LocalNucleoInterface>(cfg_.baud_rate, cfg_.timeout_ms);
+    comms_ = std::make_unique<LocalNucleoInterface>(cfg_.timeout_ms);
   } catch (const std::exception &e) {
     RCLCPP_FATAL(rclcpp::get_logger("LokiHardware"), "Failed to connect to hardware: %s", e.what());
     return hardware_interface::CallbackReturn::ERROR;

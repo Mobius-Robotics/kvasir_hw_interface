@@ -1,4 +1,6 @@
-#include "LocalNucleoInterface.hpp"
+// local_nucleo_interface.cpp
+
+#include "loki_hw_interface/local_nucleo_interface.hpp"
 #include <libserial/SerialPort.h>
 #include <vector>
 #include <cstring>
@@ -9,8 +11,8 @@
 
 using namespace LibSerial;
 
-LocalNucleoInterface::LocalNucleoInterface(int baud_rate, int timeout_ms)
-    : baud_rate_(baud_rate), timeout_ms_(timeout_ms) {
+LocalNucleoInterface::LocalNucleoInterface(int timeout_ms)
+    : timeout_ms_(timeout_ms) {
     connect();
 }
 
@@ -21,33 +23,29 @@ LocalNucleoInterface::~LocalNucleoInterface() {
 void LocalNucleoInterface::connect() {
     std::string port_name = find_nucleo_port();
     if (!port_name.empty()) {
-        try {
-            serial_port_.Open(port_name);
-            serial_port_.SetBaudRate(BaudRate::BAUD_115200); // Adjust if necessary
-            serial_port_.SetCharacterSize(CharacterSize::CHAR_SIZE_8);
-            serial_port_.SetParity(Parity::PARITY_NONE);
-            serial_port_.SetStopBits(StopBits::STOP_BITS_1);
-            serial_port_.SetFlowControl(FlowControl::FLOW_CONTROL_NONE);
-            serial_port_.SetTimeout(std::chrono::milliseconds(timeout_ms_));
-        } catch (const OpenFailed&) {
-            throw std::runtime_error("Failed to open serial port: " + port_name);
-        }
+        serial_port_.Open(port_name);
+        serial_port_.SetBaudRate(BaudRate::BAUD_115200);
+        serial_port_.SetCharacterSize(CharacterSize::CHAR_SIZE_8);
+        serial_port_.SetParity(Parity::PARITY_NONE);
+        serial_port_.SetStopBits(StopBits::STOP_BITS_1);
+        serial_port_.SetFlowControl(FlowControl::FLOW_CONTROL_NONE);
     } else {
         throw std::runtime_error("Could not find Nucleo board. Please ensure it is connected.");
     }
 }
 
+// Scans /dev/ttyACM* ports to find the connected Nucleo board
 std::string LocalNucleoInterface::find_nucleo_port() {
-    // Scan /dev/ttyACM* and return the first available port
+    // Scan /dev/ttyACM0 to /dev/ttyACM5
     for (int i = 0; i <= 5; ++i) {
         std::string port = "/dev/ttyACM" + std::to_string(i);
+        SerialPort test_port;
         try {
-            SerialPort test_port;
             test_port.Open(port);
             test_port.Close();
             return port;
         } catch (...) {
-            // Port not available
+            // Port not available or cannot be opened
             continue;
         }
     }
@@ -65,17 +63,14 @@ void LocalNucleoInterface::send_command(char command_byte, const std::vector<uin
     if (!serial_port_.IsOpen()) {
         throw std::runtime_error("Serial port is not open!");
     }
+
     // Prepare the command buffer
     std::vector<uint8_t> buffer;
     buffer.push_back('M');
     buffer.push_back(static_cast<uint8_t>(command_byte));
     buffer.insert(buffer.end(), data_bytes.begin(), data_bytes.end());
 
-    try {
-        serial_port_.Write(buffer);
-    } catch (const WriteFailed&) {
-        throw std::runtime_error("Failed to write to serial port.");
-    }
+    serial_port_.Write(buffer);
 }
 
 std::vector<uint8_t> LocalNucleoInterface::receive_data(size_t num_bytes) {
@@ -89,15 +84,9 @@ std::vector<uint8_t> LocalNucleoInterface::receive_data(size_t num_bytes) {
     size_t bytes_read = 0;
     while (bytes_read < num_bytes) {
         uint8_t byte;
-        try {
-            serial_port_.ReadByte(byte, std::chrono::milliseconds(timeout_ms_));
-            data.push_back(byte);
-            ++bytes_read;
-        } catch (const ReadTimeout&) {
-            break; // Timeout reached
-        } catch (const ReadFailed&) {
-            throw std::runtime_error("Failed to read from serial port.");
-        }
+        serial_port_.ReadByte(byte, timeout_ms_); // Pass size_t directly
+        data.push_back(byte);
+        ++bytes_read;
     }
     return data;
 }
@@ -134,8 +123,9 @@ T read_from_vector_le(const std::vector<uint8_t>& vec, size_t offset) {
 
 void LocalNucleoInterface::set_servo_angle(int channel, float angle) {
     if (channel != 0 && channel != 1) {
-        throw std::invalid_argument("Invalid channel number.");
+        throw std::invalid_argument("Invalid channel number. Valid channels are 0 and 1.");
     }
+
     // Map angle to PWM off_time
     float off_time = TIMING_MIN + (angle / 180.0f) * (TIMING_MAX - TIMING_MIN);
     off_time = std::max(static_cast<float>(TIMING_MIN), std::min(off_time, static_cast<float>(TIMING_MAX)));
@@ -153,9 +143,9 @@ void LocalNucleoInterface::set_servo_angle(int channel, float angle) {
 }
 
 std::tuple<double, double, double, double, double, double> LocalNucleoInterface::read_position_and_velocity() {
-    send_command('a');
+    send_command('a', {}); // Send command 'a' with no additional data
 
-    size_t num_bytes = 6 * sizeof(double);
+    size_t num_bytes = 6 * sizeof(double); // 6 doubles: 3 positions and 3 velocities
     std::vector<uint8_t> data = receive_data(num_bytes);
     if (data.size() != num_bytes) {
         throw std::runtime_error("Failed to receive position and velocity data.");
@@ -185,5 +175,6 @@ void LocalNucleoInterface::set_wheel_speeds(const std::tuple<int, int, int>& spe
 }
 
 void LocalNucleoInterface::stop_all_steppers() {
-    send_command('x');
+    send_command('x', {}); // Send command 'x' with no additional data
 }
+
