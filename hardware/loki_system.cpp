@@ -11,9 +11,12 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Modifications:
-// - Updated the hardware interface to communicate with the Loki robot hardware via serial connection.
-// - Removed unnecessary methods and adjusted the implementation to fit the Loki robot's architecture.
-// - Implemented custom methods for reading positions and velocities directly in radians and radians per second.
+// - Updated the hardware interface to communicate with the Loki robot hardware via serial
+// connection.
+// - Removed unnecessary methods and adjusted the implementation to fit the Loki robot's
+// architecture.
+// - Implemented custom methods for reading positions and velocities directly in radians and radians
+// per second.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,8 +35,10 @@
 
 namespace loki_hw_interface {
 
-hardware_interface::CallbackReturn LokiHardware::on_init(const hardware_interface::HardwareInfo &info) {
-  if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS) {
+hardware_interface::CallbackReturn
+LokiHardware::on_init(const hardware_interface::HardwareInfo &info) {
+  if (hardware_interface::SystemInterface::on_init(info) !=
+      hardware_interface::CallbackReturn::SUCCESS) {
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -50,28 +55,27 @@ hardware_interface::CallbackReturn LokiHardware::on_init(const hardware_interfac
 
   // Check joints
   for (const hardware_interface::ComponentInfo &joint : info_.joints) {
-	  if (joint.name != cfg_.wheel1_name && 
-	      joint.name != cfg_.wheel2_name && 
-	      joint.name != cfg_.wheel3_name) continue;
+    if (joint.name != cfg_.wheel1_name && joint.name != cfg_.wheel2_name &&
+        joint.name != cfg_.wheel3_name)
+      continue;
     if (joint.command_interfaces.size() != 1) {
       RCLCPP_FATAL(rclcpp::get_logger("LokiHardware"),
-                   "Joint '%s' has %zu command interfaces found. 1 expected.",
-                   joint.name.c_str(), joint.command_interfaces.size());
+                   "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
+                   joint.command_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
     }
 
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_VELOCITY) {
       RCLCPP_FATAL(rclcpp::get_logger("LokiHardware"),
-                   "Joint '%s' has '%s' command interface. '%s' expected.",
-                   joint.name.c_str(), joint.command_interfaces[0].name.c_str(),
-                   hardware_interface::HW_IF_VELOCITY);
+                   "Joint '%s' has '%s' command interface. '%s' expected.", joint.name.c_str(),
+                   joint.command_interfaces[0].name.c_str(), hardware_interface::HW_IF_VELOCITY);
       return hardware_interface::CallbackReturn::ERROR;
     }
 
     if (joint.state_interfaces.size() != 2) {
       RCLCPP_FATAL(rclcpp::get_logger("LokiHardware"),
-                   "Joint '%s' has %zu state interfaces. 2 expected.",
-                   joint.name.c_str(), joint.state_interfaces.size());
+                   "Joint '%s' has %zu state interfaces. 2 expected.", joint.name.c_str(),
+                   joint.state_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
     }
 
@@ -131,7 +135,8 @@ std::vector<hardware_interface::CommandInterface> LokiHardware::export_command_i
   return command_interfaces;
 }
 
-hardware_interface::CallbackReturn LokiHardware::on_configure(const rclcpp_lifecycle::State & /*previous_state*/) {
+hardware_interface::CallbackReturn
+LokiHardware::on_configure(const rclcpp_lifecycle::State & /*previous_state*/) {
   RCLCPP_INFO(rclcpp::get_logger("LokiHardware"), "Configuring ...please wait...");
 
   try {
@@ -146,7 +151,8 @@ hardware_interface::CallbackReturn LokiHardware::on_configure(const rclcpp_lifec
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn LokiHardware::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/) {
+hardware_interface::CallbackReturn
+LokiHardware::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/) {
   RCLCPP_INFO(rclcpp::get_logger("LokiHardware"), "Cleaning up ...please wait...");
 
   if (comms_) {
@@ -159,7 +165,8 @@ hardware_interface::CallbackReturn LokiHardware::on_cleanup(const rclcpp_lifecyc
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn LokiHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/) {
+hardware_interface::CallbackReturn
+LokiHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/) {
   RCLCPP_INFO(rclcpp::get_logger("LokiHardware"), "Activating ...please wait...");
 
   if (!comms_) {
@@ -172,7 +179,8 @@ hardware_interface::CallbackReturn LokiHardware::on_activate(const rclcpp_lifecy
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn LokiHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) {
+hardware_interface::CallbackReturn
+LokiHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) {
   RCLCPP_INFO(rclcpp::get_logger("LokiHardware"), "Deactivating ...please wait...");
 
   if (comms_) {
@@ -184,7 +192,8 @@ hardware_interface::CallbackReturn LokiHardware::on_deactivate(const rclcpp_life
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn LokiHardware::on_error(const rclcpp_lifecycle::State & /*previous_state*/) {
+hardware_interface::CallbackReturn
+LokiHardware::on_error(const rclcpp_lifecycle::State & /*previous_state*/) {
   RCLCPP_ERROR(rclcpp::get_logger("LokiHardware"), "An error occurred, cleaning up resources.");
 
   // Clean up resources
@@ -198,13 +207,15 @@ hardware_interface::CallbackReturn LokiHardware::on_error(const rclcpp_lifecycle
   wheel_velocities_ = std::make_tuple(0.0, 0.0, 0.0);
   wheel_commands_ = std::make_tuple(0.0, 0.0, 0.0);
 
-  RCLCPP_INFO(rclcpp::get_logger("LokiHardware"), "Cleaned up after error. Ready for reconfiguration.");
+  RCLCPP_INFO(rclcpp::get_logger("LokiHardware"),
+              "Cleaned up after error. Ready for reconfiguration.");
 
   // Return SUCCESS to allow for reconfiguration
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::return_type LokiHardware::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
+hardware_interface::return_type LokiHardware::read(const rclcpp::Time & /*time*/,
+                                                   const rclcpp::Duration & /*period*/) {
   if (!comms_) {
     RCLCPP_FATAL(rclcpp::get_logger("LokiHardware"), "Hardware interface not connected.");
     return hardware_interface::return_type::ERROR;
@@ -228,7 +239,8 @@ hardware_interface::return_type LokiHardware::read(const rclcpp::Time & /*time*/
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type LokiHardware::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) {
+hardware_interface::return_type LokiHardware::write(const rclcpp::Time & /*time*/,
+                                                    const rclcpp::Duration & /*period*/) {
   if (!comms_) {
     RCLCPP_FATAL(rclcpp::get_logger("LokiHardware"), "Hardware interface not connected.");
     return hardware_interface::return_type::ERROR;
@@ -248,8 +260,7 @@ hardware_interface::return_type LokiHardware::write(const rclcpp::Time & /*time*
   return hardware_interface::return_type::OK;
 }
 
-}  // namespace loki_hw_interface
+} // namespace loki_hw_interface
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(loki_hw_interface::LokiHardware, hardware_interface::SystemInterface)
-
