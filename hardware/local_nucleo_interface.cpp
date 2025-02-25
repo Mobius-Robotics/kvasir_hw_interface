@@ -1,13 +1,13 @@
-// local_nucleo_interface.cpp
-
-#include "loki_hw_interface/local_nucleo_interface.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cstring>
-#include <libserial/SerialPort.h>
 #include <stdexcept>
 #include <thread>
 #include <vector>
+
+#include <libserial/SerialPort.h>
+
+#include "loki_hw_interface/local_nucleo_interface.hpp"
 
 using namespace LibSerial;
 
@@ -79,7 +79,7 @@ std::vector<uint8_t> LocalNucleoInterface::receive_data(size_t num_bytes) {
   size_t bytes_read = 0;
   while (bytes_read < num_bytes) {
     uint8_t byte;
-    serial_port_.ReadByte(byte, timeout_ms_); // Pass size_t directly
+    serial_port_.ReadByte(byte, timeout_ms_);
     data.push_back(byte);
     ++bytes_read;
   }
@@ -114,31 +114,9 @@ template <typename T> T read_from_vector_le(const std::vector<uint8_t> &vec, siz
   return value;
 }
 
-void LocalNucleoInterface::set_servo_angle(int channel, float angle) {
-  if (channel != 0 && channel != 1) {
-    throw std::invalid_argument("Invalid channel number. Valid channels are 0 and 1.");
-  }
-
-  // Map angle to PWM off_time
-  float off_time = TIMING_MIN + (angle / 180.0f) * (TIMING_MAX - TIMING_MIN);
-  off_time =
-      std::max(static_cast<float>(TIMING_MIN), std::min(off_time, static_cast<float>(TIMING_MAX)));
-
-  uint8_t ch = static_cast<uint8_t>(channel);
-  uint16_t on_time = 0;
-  uint16_t off_time_int = static_cast<uint16_t>(off_time);
-
-  std::vector<uint8_t> data;
-  data.push_back(ch);
-  append_to_vector_le<uint16_t>(data, on_time);
-  append_to_vector_le<uint16_t>(data, off_time_int);
-
-  send_command('s', data);
-}
-
 std::tuple<double, double, double, double, double, double>
 LocalNucleoInterface::read_position_and_velocity() {
-  send_command('a', {}); // Send command 'a' with no additional data
+  send_command('a', {});
 
   size_t num_bytes = 6 * sizeof(double); // 6 doubles: 3 positions and 3 velocities
   std::vector<uint8_t> data = receive_data(num_bytes);
@@ -170,5 +148,5 @@ void LocalNucleoInterface::set_wheel_speeds(const std::tuple<int, int, int> &spe
 }
 
 void LocalNucleoInterface::stop_all_steppers() {
-  send_command('x', {}); // Send command 'x' with no additional data
+  send_command('x', {});
 }

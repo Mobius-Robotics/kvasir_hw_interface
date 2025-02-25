@@ -72,7 +72,7 @@ public:
 
   LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn
-  on_error(const rclcpp_lifecycle::State &previous_state) override; // Added on_error method
+  on_error(const rclcpp_lifecycle::State &previous_state) override;
 
   LOKI_HW_INTERFACE_PUBLIC
   hardware_interface::return_type read(const rclcpp::Time &time,
@@ -89,9 +89,8 @@ private:
     std::string wheel3_name = "";
     int baud_rate = 115200;
     int timeout_ms = 10;
-  };
+  } cfg_;
 
-  Config cfg_;
   std::unique_ptr<LocalNucleoInterface> comms_;
 
   std::tuple<double, double, double> wheel_positions_;
