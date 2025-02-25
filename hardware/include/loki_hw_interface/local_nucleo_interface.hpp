@@ -14,11 +14,12 @@ public:
   void stop_all_steppers();
   void close();
 
+  void send_command(char command_byte, const std::vector<uint8_t> &data_bytes = {});
+  std::vector<uint8_t> receive_data(size_t num_bytes);
+
 private:
   void connect();
   std::string find_nucleo_port();
-  void send_command(char command_byte, const std::vector<uint8_t> &data_bytes = {});
-  std::vector<uint8_t> receive_data(size_t num_bytes);
 
   LibSerial::SerialPort serial_port_;
   int timeout_ms_;
