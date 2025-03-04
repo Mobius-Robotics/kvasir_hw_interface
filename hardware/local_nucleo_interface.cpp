@@ -114,6 +114,28 @@ template <typename T> T read_from_vector_le(const std::vector<uint8_t> &vec, siz
   return value;
 }
 
+void LocalNucleoInterface::set_servo_angle(int channel, float angle) {
+  if (channel != 0 && channel != 1) {
+    throw std::invalid_argument("Invalid channel number. Valid channels are 0 and 1.");
+  }
+
+  // Map angle to PWM off_time
+  float off_time = TIMING_MIN + (angle / 180.0f) * (TIMING_MAX - TIMING_MIN);
+  off_time =
+      std::max(static_cast<float>(TIMING_MIN), std::min(off_time, static_cast<float>(TIMING_MAX)));
+
+  uint8_t ch = static_cast<uint8_t>(channel);
+  uint16_t on_time = 0;
+  uint16_t off_time_int = static_cast<uint16_t>(off_time);
+
+  std::vector<uint8_t> data;
+  data.push_back(ch);
+  append_to_vector_le<uint16_t>(data, on_time);
+  append_to_vector_le<uint16_t>(data, off_time_int);
+
+  send_command('s', data);
+}
+
 std::tuple<double, double, double, double, double, double>
 LocalNucleoInterface::read_position_and_velocity() {
   send_command('a', {});

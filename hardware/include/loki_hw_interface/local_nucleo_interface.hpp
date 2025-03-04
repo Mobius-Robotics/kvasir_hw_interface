@@ -9,6 +9,7 @@ public:
   LocalNucleoInterface(int timeout_ms = 10);
   ~LocalNucleoInterface();
 
+  void set_servo_angle(int channel, float angle);
   std::tuple<double, double, double, double, double, double> read_position_and_velocity();
   void set_wheel_speeds(const std::tuple<int, int, int> &speeds);
   void stop_all_steppers();
@@ -23,4 +24,8 @@ private:
 
   LibSerial::SerialPort serial_port_;
   int timeout_ms_;
+
+  // Servo timings to convert angle to PWM off time.
+  static constexpr int TIMING_MIN = 100;
+  static constexpr int TIMING_MAX = 470;
 };
