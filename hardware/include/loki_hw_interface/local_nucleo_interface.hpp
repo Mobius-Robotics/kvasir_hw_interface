@@ -3,6 +3,7 @@
 #include <libserial/SerialPort.h>
 #include <string>
 #include <tuple>
+#include <span>
 
 class LocalNucleoInterface {
 public:
@@ -17,8 +18,8 @@ public:
   void stop_all_steppers();
   void close();
 
-  void send_command(char command_byte, const std::vector<uint8_t> &data_bytes = {});
-  std::vector<uint8_t> receive_data(size_t num_bytes);
+  void send_command(char command_byte, std::span<const uint8_t> data_bytes);
+  void receive_data(std::span<uint8_t> num_bytes);
 
 private:
   void connect();

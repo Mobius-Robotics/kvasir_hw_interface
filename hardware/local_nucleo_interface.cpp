@@ -55,7 +55,7 @@ void LocalNucleoInterface::close() {
   }
 }
 
-void LocalNucleoInterface::send_command(char command_byte, const std::vector<uint8_t> &data_bytes) {
+void LocalNucleoInterface::send_command(char command_byte, std::span<const uint8_t> data_bytes) {
   if (!serial_port_.IsOpen()) {
     throw std::runtime_error("Serial port is not open!");
   }
@@ -69,22 +69,16 @@ void LocalNucleoInterface::send_command(char command_byte, const std::vector<uin
   serial_port_.Write(buffer);
 }
 
-std::vector<uint8_t> LocalNucleoInterface::receive_data(size_t num_bytes) {
+void LocalNucleoInterface::receive_data(std::span<uint8_t> buffer) {
   if (!serial_port_.IsOpen()) {
     throw std::runtime_error("Serial port is not open!");
   }
 
-  std::vector<uint8_t> data;
-  data.reserve(num_bytes);
-
   size_t bytes_read = 0;
-  while (bytes_read < num_bytes) {
-    uint8_t byte;
-    serial_port_.ReadByte(byte, timeout_ms_);
-    data.push_back(byte);
+  while (bytes_read < buffer.size()) {
+    serial_port_.ReadByte(buffer[bytes_read], timeout_ms_);
     ++bytes_read;
   }
-  return data;
 }
 
 template <typename T> void append_to_vector_le(std::vector<uint8_t> &vec, T value) {
@@ -100,7 +94,7 @@ template <typename T> void append_to_vector_le(std::vector<uint8_t> &vec, T valu
 #endif
 }
 
-template <typename T> T read_from_vector_le(const std::vector<uint8_t> &vec, size_t offset) {
+template <typename T> T read_from_vector_le(std::span<const uint8_t> vec, size_t offset) {
   T value;
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   std::memcpy(&value, &vec[offset], sizeof(T));
@@ -141,11 +135,8 @@ std::tuple<double, double, double, double, double, double>
 LocalNucleoInterface::read_position_and_velocity() {
   send_command('a', {});
 
-  size_t num_bytes = 6 * sizeof(double); // 6 doubles: 3 positions and 3 velocities
-  std::vector<uint8_t> data = receive_data(num_bytes);
-  if (data.size() != num_bytes) {
-    throw std::runtime_error("Failed to receive position and velocity data.");
-  }
+  uint8_t data[6 * sizeof(double)];
+  receive_data(data);
 
   double encoder1 = read_from_vector_le<double>(data, 0);
   double encoder2 = read_from_vector_le<double>(data, sizeof(double));
