@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <thread>
 #include <vector>
+#include <span>
 
 #include <libserial/SerialPort.h>
 
@@ -171,4 +172,19 @@ void LocalNucleoInterface::set_wheel_speeds(const std::tuple<int, int, int> &spe
 
 void LocalNucleoInterface::stop_all_steppers() {
   send_command('x', {});
+}
+
+void LocalNucleoInterface::print_lcd(const uint8_t line, const std::string &msg) {
+  if (line >= 2) {
+    throw std::invalid_argument("Invalid line number. Valid lines are 0 and 1.");
+  }
+
+  char msg_buf[16]{};
+  std::memcpy(msg_buf, msg.data(), std::min(msg.length(), static_cast<std::size_t>(16)));
+
+  std::vector<uint8_t> data;
+  data.push_back(line);
+  data.insert(data.end(), msg_buf, msg_buf + 15);
+
+  send_command('l', data);
 }

@@ -9,9 +9,11 @@ public:
   LocalNucleoInterface(int timeout_ms = 10);
   ~LocalNucleoInterface();
 
-  void set_servo_angle(int channel, float angle);
+  void set_servo_angle(const int channel, const float angle);
   std::tuple<double, double, double, double, double, double> read_position_and_velocity();
   void set_wheel_speeds(const std::tuple<int, int, int> &speeds);
+  void print_lcd(const uint8_t line, const std::string &msg);
+
   void stop_all_steppers();
   void close();
 

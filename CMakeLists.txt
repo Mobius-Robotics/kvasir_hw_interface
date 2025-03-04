@@ -28,7 +28,7 @@ add_library(
   hardware/loki_system.cpp
   hardware/local_nucleo_interface.cpp
 )
-target_compile_features(loki_hw_interface PUBLIC cxx_std_17)
+target_compile_features(loki_hw_interface PUBLIC cxx_std_20)
 target_include_directories(loki_hw_interface PUBLIC
 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
 $<INSTALL_INTERFACE:include/loki_hw_interface>
@@ -54,7 +54,7 @@ pluginlib_export_plugin_description_file(hardware_interface loki_hw_interface.xm
 add_library(local_nucleo_interface SHARED
   hardware/local_nucleo_interface.cpp
 )
-target_compile_features(local_nucleo_interface PUBLIC cxx_std_17)
+target_compile_features(local_nucleo_interface PUBLIC cxx_std_20)
 target_include_directories(local_nucleo_interface PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
   $<INSTALL_INTERFACE:include/loki_hw_interface>
