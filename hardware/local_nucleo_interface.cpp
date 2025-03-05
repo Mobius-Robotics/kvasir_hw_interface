@@ -3,7 +3,6 @@
 #include <cstring>
 #include <stdexcept>
 #include <thread>
-#include <vector>
 #include <span>
 
 #include <libserial/SerialPort.h>
@@ -60,13 +59,9 @@ void LocalNucleoInterface::send_command(char command_byte, std::span<const uint8
     throw std::runtime_error("Serial port is not open!");
   }
 
-  // Prepare the command buffer
-  std::vector<uint8_t> buffer;
-  buffer.push_back('M');
-  buffer.push_back(static_cast<uint8_t>(command_byte));
-  buffer.insert(buffer.end(), data_bytes.begin(), data_bytes.end());
-
-  serial_port_.Write(buffer);
+  serial_port_.WriteByte('M');
+  serial_port_.WriteByte(command_byte);
+  for (uint8_t byte : data_bytes) serial_port_.WriteByte(byte);
 }
 
 void LocalNucleoInterface::receive_data(std::span<uint8_t> buffer) {
@@ -81,20 +76,28 @@ void LocalNucleoInterface::receive_data(std::span<uint8_t> buffer) {
   }
 }
 
-template <typename T> void append_to_vector_le(std::vector<uint8_t> &vec, T value) {
-  uint8_t *ptr = reinterpret_cast<uint8_t *>(&value);
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-  vec.insert(vec.end(), ptr, ptr + sizeof(T));
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  for (int i = sizeof(T) - 1; i >= 0; --i) {
-    vec.push_back(ptr[i]);
+template <typename T>
+void write_to_span_le(std::span<uint8_t> buffer, size_t& offset, T value) {
+  static_assert(std::is_trivially_copyable_v<T>, "Value must be trivially copyable");
+  if (buffer.size() < offset + sizeof(T)) {
+    throw std::runtime_error("Buffer overflow in write_to_buffer_le");
   }
-#else
-#error "Unknown byte order"
-#endif
+
+  #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    std::memcpy(buffer.data() + offset, &value, sizeof(T));
+  #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    uint8_t* p = reinterpret_cast<uint8_t*>(&value);
+    for (size_t i = 0; i < sizeof(T); ++i) {
+      buffer[offset + i] = p[sizeof(T) - 1 - i];
+    }
+  #else
+    #error "Unknown byte order"
+  #endif
+
+  offset += sizeof(T);
 }
 
-template <typename T> T read_from_vector_le(std::span<const uint8_t> vec, size_t offset) {
+template <typename T> T read_from_span_le(std::span<const uint8_t> vec, size_t offset) {
   T value;
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   std::memcpy(&value, &vec[offset], sizeof(T));
@@ -123,10 +126,11 @@ void LocalNucleoInterface::set_servo_angle(int channel, float angle) {
   uint16_t on_time = 0;
   uint16_t off_time_int = static_cast<uint16_t>(off_time);
 
-  std::vector<uint8_t> data;
-  data.push_back(ch);
-  append_to_vector_le<uint16_t>(data, on_time);
-  append_to_vector_le<uint16_t>(data, off_time_int);
+  std::array<uint8_t, 1 + 2 * sizeof(uint16_t)> data;
+  size_t data_offset = 0;
+  write_to_span_le<uint8_t>(data, data_offset, ch);
+  write_to_span_le<uint16_t>(data, data_offset, on_time);
+  write_to_span_le<uint16_t>(data, data_offset, off_time_int);
 
   send_command('s', data);
 }
@@ -138,12 +142,12 @@ LocalNucleoInterface::read_position_and_velocity() {
   uint8_t data[6 * sizeof(double)];
   receive_data(data);
 
-  double encoder1 = read_from_vector_le<double>(data, 0);
-  double encoder2 = read_from_vector_le<double>(data, sizeof(double));
-  double encoder3 = read_from_vector_le<double>(data, 2 * sizeof(double));
-  double velocity1 = read_from_vector_le<double>(data, 3 * sizeof(double));
-  double velocity2 = read_from_vector_le<double>(data, 4 * sizeof(double));
-  double velocity3 = read_from_vector_le<double>(data, 5 * sizeof(double));
+  double encoder1 = read_from_span_le<double>(data, 0);
+  double encoder2 = read_from_span_le<double>(data, sizeof(double));
+  double encoder3 = read_from_span_le<double>(data, 2 * sizeof(double));
+  double velocity1 = read_from_span_le<double>(data, 3 * sizeof(double));
+  double velocity2 = read_from_span_le<double>(data, 4 * sizeof(double));
+  double velocity3 = read_from_span_le<double>(data, 5 * sizeof(double));
 
   return std::make_tuple(encoder1, encoder2, encoder3, velocity1, velocity2, velocity3);
 }
@@ -153,10 +157,11 @@ void LocalNucleoInterface::set_wheel_speeds(const std::tuple<int, int, int> &spe
   int speed2 = std::get<1>(speeds);
   int speed3 = std::get<2>(speeds);
 
-  std::vector<uint8_t> data;
-  append_to_vector_le<int32_t>(data, static_cast<int32_t>(speed1));
-  append_to_vector_le<int32_t>(data, static_cast<int32_t>(speed2));
-  append_to_vector_le<int32_t>(data, static_cast<int32_t>(speed3));
+  std::array<uint8_t, 3 * sizeof(int32_t)> data;
+  size_t data_offset = 0;
+  write_to_span_le<int32_t>(data, data_offset, static_cast<int32_t>(speed1));
+  write_to_span_le<int32_t>(data, data_offset, static_cast<int32_t>(speed2));
+  write_to_span_le<int32_t>(data, data_offset, static_cast<int32_t>(speed3));
 
   send_command('u', data);
 }
@@ -170,12 +175,9 @@ void LocalNucleoInterface::print_lcd(const uint8_t line, const std::string &msg)
     throw std::invalid_argument("Invalid line number. Valid lines are 0 and 1.");
   }
 
-  char msg_buf[16]{};
-  std::memcpy(msg_buf, msg.data(), std::min(msg.length(), static_cast<std::size_t>(16)));
-
-  std::vector<uint8_t> data;
-  data.push_back(line);
-  data.insert(data.end(), msg_buf, msg_buf + 15);
+  std::array<uint8_t, 1 + 16> data;
+  data[0] = line;
+  std::memcpy(data.data() + 1, msg.data(), std::min(msg.length(), static_cast<std::size_t>(16)));
 
   send_command('l', data);
 }
