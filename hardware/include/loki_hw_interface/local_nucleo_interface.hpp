@@ -2,6 +2,7 @@
 
 #include <libserial/SerialPort.h>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <span>
 
@@ -13,7 +14,7 @@ public:
   void set_servo_angle(const int channel, const float angle);
   std::tuple<double, double, double, double, double, double> read_position_and_velocity();
   void set_wheel_speeds(const std::tuple<int, int, int> &speeds);
-  void print_lcd(const uint8_t line, const std::string &msg);
+  void print_lcd(const uint8_t line, const std::string_view msg);
 
   void stop_all_steppers();
   void close();

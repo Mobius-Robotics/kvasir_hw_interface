@@ -170,7 +170,7 @@ void LocalNucleoInterface::stop_all_steppers() {
   send_command('x', {});
 }
 
-void LocalNucleoInterface::print_lcd(const uint8_t line, const std::string &msg) {
+void LocalNucleoInterface::print_lcd(const uint8_t line, const std::string_view msg) {
   if (line >= 2) {
     throw std::invalid_argument("Invalid line number. Valid lines are 0 and 1.");
   }
