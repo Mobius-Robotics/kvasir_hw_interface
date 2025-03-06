@@ -175,7 +175,7 @@ void LocalNucleoInterface::print_lcd(const uint8_t line, const std::string_view 
     throw std::invalid_argument("Invalid line number. Valid lines are 0 and 1.");
   }
 
-  std::array<uint8_t, 1 + 16> data;
+  std::array<uint8_t, 1 + 16> data{};
   data[0] = line;
   std::memcpy(data.data() + 1, msg.data(), std::min(msg.length(), static_cast<std::size_t>(16)));
 
