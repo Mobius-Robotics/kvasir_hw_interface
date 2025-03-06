@@ -112,25 +112,18 @@ template <typename T> T read_from_span_le(std::span<const uint8_t> vec, size_t o
   return value;
 }
 
-void LocalNucleoInterface::set_servo_angle(int channel, float angle) {
+void LocalNucleoInterface::set_servo_angle(const uint8_t channel, const double angle) {
   if (channel != 0 && channel != 1) {
     throw std::invalid_argument("Invalid channel number. Valid channels are 0 and 1.");
   }
 
-  // Map angle to PWM off_time
-  float off_time = TIMING_MIN + (angle / 180.0f) * (TIMING_MAX - TIMING_MIN);
-  off_time =
-      std::max(static_cast<float>(TIMING_MIN), std::min(off_time, static_cast<float>(TIMING_MAX)));
+  double duty_cycle = ((angle / 360.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) + MIN_SERVO_DUTY_CYCLE) / 100.0;
+  double ccr = 20000 * duty_cycle;
 
-  uint8_t ch = static_cast<uint8_t>(channel);
-  uint16_t on_time = 0;
-  uint16_t off_time_int = static_cast<uint16_t>(off_time);
-
-  std::array<uint8_t, 1 + 2 * sizeof(uint16_t)> data;
+  std::array<uint8_t, 1 + sizeof(uint16_t)> data;
   size_t data_offset = 0;
-  write_to_span_le<uint8_t>(data, data_offset, ch);
-  write_to_span_le<uint16_t>(data, data_offset, on_time);
-  write_to_span_le<uint16_t>(data, data_offset, off_time_int);
+  write_to_span_le<uint8_t>(data, data_offset, channel);
+  write_to_span_le<uint16_t>(data, data_offset, static_cast<uint16_t>(ccr));
 
   send_command('s', data);
 }
