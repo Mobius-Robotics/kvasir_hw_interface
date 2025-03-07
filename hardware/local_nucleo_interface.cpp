@@ -112,13 +112,10 @@ template <typename T> T read_from_span_le(std::span<const uint8_t> vec, size_t o
   return value;
 }
 
-void LocalNucleoInterface::set_servo_angle(const uint8_t channel, const double angle) {
+void LocalNucleoInterface::set_servo_ccr(const uint8_t channel, const uint16_t ccr) {
   if (channel != 0 && channel != 1) {
     throw std::invalid_argument("Invalid channel number. Valid channels are 0 and 1.");
   }
-
-  double duty_cycle = ((angle / 360.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) + MIN_SERVO_DUTY_CYCLE) / 100.0;
-  double ccr = 20000 * duty_cycle;
 
   std::array<uint8_t, 1 + sizeof(uint16_t)> data;
   size_t data_offset = 0;
@@ -126,6 +123,13 @@ void LocalNucleoInterface::set_servo_angle(const uint8_t channel, const double a
   write_to_span_le<uint16_t>(data, data_offset, static_cast<uint16_t>(ccr));
 
   send_command('s', data);
+}
+
+void LocalNucleoInterface::set_servo_angle(const uint8_t channel, const double angle) {
+  double duty_cycle = ((angle / 180.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) + MIN_SERVO_DUTY_CYCLE) / 100.0;
+  double ccr = 20000 * duty_cycle;
+
+  set_servo_ccr(channel, static_cast<uint16_t>(ccr));
 }
 
 std::tuple<double, double, double, double, double, double>

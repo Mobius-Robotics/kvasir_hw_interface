@@ -11,6 +11,7 @@ public:
   LocalNucleoInterface(int timeout_ms = 10);
   ~LocalNucleoInterface();
 
+  void set_servo_ccr(const uint8_t channel, const uint16_t ccr);
   void set_servo_angle(const uint8_t channel, const double angle);
   std::tuple<double, double, double, double, double, double> read_position_and_velocity();
   void set_wheel_speeds(const std::tuple<int, int, int> &speeds);
@@ -29,6 +30,6 @@ private:
   LibSerial::SerialPort serial_port_;
   int timeout_ms_;
 
-  static constexpr double MAX_SERVO_DUTY_CYCLE = 11.0;
-  static constexpr double MIN_SERVO_DUTY_CYCLE = 9.0;
+  static constexpr double MAX_SERVO_DUTY_CYCLE = 20.0;
+  static constexpr double MIN_SERVO_DUTY_CYCLE = 2.0;
 };
