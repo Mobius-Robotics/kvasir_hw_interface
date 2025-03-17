@@ -113,10 +113,6 @@ template <typename T> T read_from_span_le(std::span<const uint8_t> vec, size_t o
 }
 
 void LocalNucleoInterface::set_servo_ccrs(const uint16_t ccr1, const uint16_t ccr2) {
-  if (channel != 0 && channel != 1) {
-    throw std::invalid_argument("Invalid channel number. Valid channels are 0 and 1.");
-  }
-
   std::array<uint8_t, 2 * sizeof(uint16_t)> data;
   size_t data_offset = 0;
   write_to_span_le<uint8_t>(data, data_offset, ccr1);

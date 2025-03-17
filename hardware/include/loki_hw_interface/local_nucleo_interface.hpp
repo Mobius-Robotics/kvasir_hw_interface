@@ -11,8 +11,8 @@ public:
   LocalNucleoInterface(int timeout_ms = 10);
   ~LocalNucleoInterface();
 
-  void set_servo_ccr(const uint8_t channel, const uint16_t ccr);
-  void set_servo_angle(const uint8_t channel, const double angle);
+  void set_servo_ccrs(const uint16_t, const uint16_t);
+  void set_servo_angles(const double, const double);
   std::tuple<double, double, double, double, double, double> read_position_and_velocity();
   void set_wheel_speeds(const std::tuple<int, int, int> &speeds);
   void print_lcd(const uint8_t line, const std::string_view msg);
