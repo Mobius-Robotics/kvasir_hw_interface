@@ -115,7 +115,7 @@ template <typename T> T read_from_span_le(std::span<const uint8_t> vec, size_t o
 void LocalNucleoInterface::set_servo_ccrs(const uint16_t ccr1, const uint16_t ccr2) {
   std::array<uint8_t, 2 * sizeof(uint16_t)> data;
   size_t data_offset = 0;
-  write_to_span_le<uint8_t>(data, data_offset, ccr1);
+  write_to_span_le<uint16_t>(data, data_offset, ccr1);
   write_to_span_le<uint16_t>(data, data_offset, ccr2);
 
   send_command('s', data);
