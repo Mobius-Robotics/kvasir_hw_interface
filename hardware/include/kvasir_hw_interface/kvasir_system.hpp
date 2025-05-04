@@ -28,7 +28,6 @@
 
 #include <memory>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include "hardware_interface/hardware_info.hpp"
@@ -84,9 +83,7 @@ public:
 
 private:
   struct Config {
-    std::string wheel1_name = "";
-    std::string wheel2_name = "";
-    std::string wheel3_name = "";
+    std::array<std::string, LocalNucleoInterface::WHEEL_COUNT> wheel_names;
     int baud_rate = 115200;
     int timeout_ms = 10;
   } cfg_;

@@ -28,6 +28,9 @@
 
 #include <cmath>
 #include <memory>
+#include <ranges>
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -43,9 +46,11 @@ KvasirHardware::on_init(const hardware_interface::HardwareInfo &info) {
   }
 
   // Parse parameters
-  cfg_.wheel1_name = info_.hardware_parameters["wheel1_name"];
-  cfg_.wheel2_name = info_.hardware_parameters["wheel2_name"];
-  cfg_.wheel3_name = info_.hardware_parameters["wheel3_name"];
+  for (size_t i = 0; i < LocalNucleoInterface::WHEEL_COUNT; ++i) {
+    std::ostringstream oss;
+    oss << "wheel" << (i + 1) << "_name";
+    cfg_.wheel_names[i] = info_.hardware_parameters[oss.str()];
+  }
   cfg_.timeout_ms = std::stoi(info_.hardware_parameters["timeout_ms"]);
 
   // Initialize positions, velocities, and commands
@@ -55,8 +60,7 @@ KvasirHardware::on_init(const hardware_interface::HardwareInfo &info) {
 
   // Check joints
   for (const hardware_interface::ComponentInfo &joint : info_.joints) {
-    if (joint.name != cfg_.wheel1_name && joint.name != cfg_.wheel2_name &&
-        joint.name != cfg_.wheel3_name)
+    if (std::ranges::find(cfg_.wheel_names, joint.name) == cfg_.wheel_names.end())
       continue;
     if (joint.command_interfaces.size() != 1) {
       RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"),
@@ -102,20 +106,12 @@ KvasirHardware::on_init(const hardware_interface::HardwareInfo &info) {
 std::vector<hardware_interface::StateInterface> KvasirHardware::export_state_interfaces() {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
-  state_interfaces.emplace_back(hardware_interface::StateInterface(
-      cfg_.wheel1_name, hardware_interface::HW_IF_POSITION, &std::get<0>(wheel_positions_)));
-  state_interfaces.emplace_back(hardware_interface::StateInterface(
-      cfg_.wheel1_name, hardware_interface::HW_IF_VELOCITY, &std::get<0>(wheel_velocities_)));
-
-  state_interfaces.emplace_back(hardware_interface::StateInterface(
-      cfg_.wheel2_name, hardware_interface::HW_IF_POSITION, &std::get<1>(wheel_positions_)));
-  state_interfaces.emplace_back(hardware_interface::StateInterface(
-      cfg_.wheel2_name, hardware_interface::HW_IF_VELOCITY, &std::get<1>(wheel_velocities_)));
-
-  state_interfaces.emplace_back(hardware_interface::StateInterface(
-      cfg_.wheel3_name, hardware_interface::HW_IF_POSITION, &std::get<2>(wheel_positions_)));
-  state_interfaces.emplace_back(hardware_interface::StateInterface(
-      cfg_.wheel3_name, hardware_interface::HW_IF_VELOCITY, &std::get<2>(wheel_velocities_)));
+  for (size_t i = 0; i < LocalNucleoInterface::WHEEL_COUNT; ++i) {
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        cfg_.wheel_names[i], hardware_interface::HW_IF_POSITION, &wheel_positions_[i]));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        cfg_.wheel_names[i], hardware_interface::HW_IF_VELOCITY, &wheel_velocities_[i]));
+  }
 
   return state_interfaces;
 }
@@ -123,14 +119,11 @@ std::vector<hardware_interface::StateInterface> KvasirHardware::export_state_int
 std::vector<hardware_interface::CommandInterface> KvasirHardware::export_command_interfaces() {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-  command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      cfg_.wheel1_name, hardware_interface::HW_IF_VELOCITY, &std::get<0>(wheel_commands_)));
+  for (size_t i = 0; i < LocalNucleoInterface::WHEEL_COUNT; ++i) {
 
-  command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      cfg_.wheel2_name, hardware_interface::HW_IF_VELOCITY, &std::get<1>(wheel_commands_)));
-
-  command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      cfg_.wheel3_name, hardware_interface::HW_IF_VELOCITY, &std::get<2>(wheel_commands_)));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        cfg_.wheel_names[i], hardware_interface::HW_IF_VELOCITY, &wheel_commands_[i]));
+  }
 
   return command_interfaces;
 }
