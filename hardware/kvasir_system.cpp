@@ -49,9 +49,9 @@ KvasirHardware::on_init(const hardware_interface::HardwareInfo &info) {
   cfg_.timeout_ms = std::stoi(info_.hardware_parameters["timeout_ms"]);
 
   // Initialize positions, velocities, and commands
-  wheel_positions_ = std::make_tuple(0.0, 0.0, 0.0);
-  wheel_velocities_ = std::make_tuple(0.0, 0.0, 0.0);
-  wheel_commands_ = std::make_tuple(0.0, 0.0, 0.0);
+  wheel_positions_.fill(0.0);
+  wheel_velocities_.fill(0.0);
+  wheel_commands_.fill(0.0);
 
   // Check joints
   for (const hardware_interface::ComponentInfo &joint : info_.joints) {
@@ -142,7 +142,8 @@ KvasirHardware::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
   try {
     comms_ = std::make_unique<LocalNucleoInterface>(cfg_.timeout_ms);
   } catch (const std::exception &e) {
-    RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Failed to connect to hardware: %s", e.what());
+    RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Failed to connect to hardware: %s",
+                 e.what());
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -170,7 +171,8 @@ KvasirHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/) 
   RCLCPP_INFO(rclcpp::get_logger("KvasirHardware"), "Activating ...please wait...");
 
   if (!comms_) {
-    RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Hardware interface not configured properly.");
+    RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"),
+                 "Hardware interface not configured properly.");
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -203,9 +205,9 @@ KvasirHardware::on_error(const rclcpp_lifecycle::State & /*previous_state*/) {
   }
 
   // Reset commands and states
-  wheel_positions_ = std::make_tuple(0.0, 0.0, 0.0);
-  wheel_velocities_ = std::make_tuple(0.0, 0.0, 0.0);
-  wheel_commands_ = std::make_tuple(0.0, 0.0, 0.0);
+  wheel_positions_.fill(0.0);
+  wheel_velocities_.fill(0.0);
+  wheel_commands_.fill(0.0);
 
   RCLCPP_INFO(rclcpp::get_logger("KvasirHardware"),
               "Cleaned up after error. Ready for reconfiguration.");
@@ -215,24 +217,25 @@ KvasirHardware::on_error(const rclcpp_lifecycle::State & /*previous_state*/) {
 }
 
 hardware_interface::return_type KvasirHardware::read(const rclcpp::Time & /*time*/,
-                                                   const rclcpp::Duration & /*period*/) {
+                                                     const rclcpp::Duration & /*period*/) {
   if (!comms_) {
     RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Hardware interface not connected.");
     return hardware_interface::return_type::ERROR;
   }
 
   try {
-    auto data = comms_->read_position_and_velocity();
-    double position1, position2, position3;
-    double velocity1, velocity2, velocity3;
-
-    std::tie(position1, position2, position3, velocity1, velocity2, velocity3) = data;
-
-    wheel_positions_ = std::make_tuple(position1, position2, position3);
-    wheel_velocities_ = std::make_tuple(velocity1, velocity2, velocity3);
+    // auto data = comms_->read_position_and_velocity();
+    // double position1, position2, position3;
+    // double velocity1, velocity2, velocity3;
+    //
+    // std::tie(position1, position2, position3, velocity1, velocity2, velocity3) = data;
+    //
+    // wheel_positions_ = std::make_tuple(position1, position2, position3);
+    // wheel_velocities_ = std::make_tuple(velocity1, velocity2, velocity3);
 
   } catch (const std::exception &e) {
-    RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Failed to read from hardware: %s", e.what());
+    RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Failed to read from hardware: %s",
+                 e.what());
     return hardware_interface::return_type::ERROR;
   }
 
@@ -240,18 +243,18 @@ hardware_interface::return_type KvasirHardware::read(const rclcpp::Time & /*time
 }
 
 hardware_interface::return_type KvasirHardware::write(const rclcpp::Time & /*time*/,
-                                                    const rclcpp::Duration & /*period*/) {
+                                                      const rclcpp::Duration & /*period*/) {
   if (!comms_) {
     RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Hardware interface not connected.");
     return hardware_interface::return_type::ERROR;
   }
 
   try {
-    double cmd1_rad_per_sec = std::get<0>(wheel_commands_);
-    double cmd2_rad_per_sec = std::get<1>(wheel_commands_);
-    double cmd3_rad_per_sec = std::get<2>(wheel_commands_);
-
-    comms_->set_wheel_speeds(std::make_tuple(cmd1_rad_per_sec, cmd2_rad_per_sec, cmd3_rad_per_sec));
+    std::array<int32_t, LocalNucleoInterface::WHEEL_COUNT> wheel_speeds;
+    for (size_t i = 0; i < LocalNucleoInterface::WHEEL_COUNT; ++i) {
+      wheel_speeds[i] = static_cast<int32_t>(wheel_commands_[i]);
+    }
+    comms_->set_wheel_speeds(wheel_speeds);
   } catch (const std::exception &e) {
     RCLCPP_FATAL(rclcpp::get_logger("KvasirHardware"), "Failed to write to hardware: %s", e.what());
     return hardware_interface::return_type::ERROR;

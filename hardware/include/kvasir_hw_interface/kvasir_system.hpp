@@ -93,9 +93,9 @@ private:
 
   std::unique_ptr<LocalNucleoInterface> comms_;
 
-  std::tuple<double, double, double> wheel_positions_;
-  std::tuple<double, double, double> wheel_velocities_;
-  std::tuple<double, double, double> wheel_commands_;
+  std::array<double, LocalNucleoInterface::WHEEL_COUNT> wheel_positions_;
+  std::array<double, LocalNucleoInterface::WHEEL_COUNT> wheel_velocities_;
+  std::array<double, LocalNucleoInterface::WHEEL_COUNT> wheel_commands_;
 };
 
 } // namespace kvasir_hw_interface

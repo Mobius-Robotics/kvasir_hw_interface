@@ -1,3 +1,4 @@
+#include <cstring>
 #include <stdexcept>
 
 #include <libserial/SerialPort.h>
@@ -118,9 +119,13 @@ void LocalNucleoInterface::set_servo_ccrs(const std::array<uint16_t, SERVO_COUNT
 }
 
 void LocalNucleoInterface::set_servo_angles(const std::array<double, SERVO_COUNT> thetas) {
-std::array<uint16_t, SERVO_COUNT> ccrs;
-  for (size_t i = 0; i < SERVO_COUNT; ++i) {
-    ccrs[i] = static_cast<uint16_t>(ARR * ((thetas[i] / 180.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) + MIN_SERVO_DUTY_CYCLE) / 100.0);
+  std::array<uint16_t, SERVO_COUNT> ccrs;
+  for (size_t i = 0; i < SERVO_COUNT; ++i) {
+    ccrs[i] =
+        static_cast<uint16_t>(ARR *
+                              ((thetas[i] / 180.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) +
+                               MIN_SERVO_DUTY_CYCLE) /
+                              100.0);
   }
   set_servo_ccrs(ccrs);
 }
