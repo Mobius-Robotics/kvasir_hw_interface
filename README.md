@@ -8,6 +8,19 @@ connection.
 > [!IMPORTANT]
 > This repository contains only the hardware interface for Kvasir. The robot's description and other related files are maintained in the [`kvasir_description`](https://github.com/Mobius-Robotics/kvasir_description) repository under the Mobius-Robotics organization.
 
+Wheel convention
+----------------
+
+Wheels are expected to be numbered in the following order:
+1) Front left;
+2) Front right;
+3) Rear left;
+4) Rear right.
+
+While this is not strictly a requirement in this package (since the only interface provided directly
+controls the wheel speeds), it is useful to have a convention (which is already used, e.g., in
+[`kvasir_joystick_controller`](https://github.com/Mobius-Robotics/kvasir_joystick_controller)).
+
 Acknowledgements
 ----------------
 
