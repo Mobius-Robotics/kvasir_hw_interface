@@ -1,0 +1,10 @@
+<library path="kvasir_hw_interface">
+  <class name="kvasir_hw_interface/KvasirHardware"
+         type="kvasir_hw_interface::KvasirHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Hardware interface for the Kvasir robot using a system hardware interface type. It provides velocity command and position state interfaces for controlling the robot's wheels and actuators. This hardware interface communicates with the Kvasir robot's hardware via a serial connection, enabling control of the robot's actuators and retrieval of sensor data.
+    </description>
+  </class>
+</library>
+

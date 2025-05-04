@@ -1,12 +1,12 @@
-loki_hw_interface
+kvasir_hw_interface
 =================
 
-The `loki_hw_interface` package provides a `ros2_control` hardware interface
-for our Loki robot. It communicates with a Nucleo-H503RB over a serial
+The `kvasir_hw_interface` package provides a `ros2_control` hardware interface
+for our Kvasir robot. It communicates with a Nucleo-H503RB over a serial
 connection.
 
 > [!IMPORTANT]
-> This repository contains only the hardware interface for Loki. The robot's description and other related files are maintained in the [`loki_description`](https://github.com/Mobius-Robotics/loki_description) repository under the Mobius-Robotics organization.
+> This repository contains only the hardware interface for Kvasir. The robot's description and other related files are maintained in the [`kvasir_description`](https://github.com/Mobius-Robotics/kvasir_description) repository under the Mobius-Robotics organization.
 
 Acknowledgements
 ----------------

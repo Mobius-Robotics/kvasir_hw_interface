@@ -7,7 +7,7 @@
 
 #include <libserial/SerialPort.h>
 
-#include "loki_hw_interface/local_nucleo_interface.hpp"
+#include "kvasir_hw_interface/local_nucleo_interface.hpp"
 
 using namespace LibSerial;
 

@@ -11,9 +11,9 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Modifications:
-// - Updated the hardware interface to communicate with the Loki robot hardware via serial
+// - Updated the hardware interface to communicate with the Kvasir robot hardware via serial
 // connection.
-// - Removed unnecessary methods and adjusted the implementation to fit the Loki robot's
+// - Removed unnecessary methods and adjusted the implementation to fit the Kvasir robot's
 // architecture.
 // - Implemented custom methods for reading positions and velocities directly in radians and radians
 // per second.
@@ -34,51 +34,51 @@
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
-#include "loki_hw_interface/visibility_control.h"
+#include "kvasir_hw_interface/visibility_control.h"
 #include "rclcpp/macros.hpp"
 
 #include "local_nucleo_interface.hpp"
 
-namespace loki_hw_interface {
+namespace kvasir_hw_interface {
 
-class LokiHardware : public hardware_interface::SystemInterface {
+class KvasirHardware : public hardware_interface::SystemInterface {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(LokiHardware);
+  RCLCPP_SHARED_PTR_DEFINITIONS(KvasirHardware);
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn
   on_configure(const rclcpp_lifecycle::State &previous_state) override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn
   on_cleanup(const rclcpp_lifecycle::State &previous_state) override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn
   on_activate(const rclcpp_lifecycle::State &previous_state) override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn
   on_deactivate(const rclcpp_lifecycle::State &previous_state) override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::CallbackReturn
   on_error(const rclcpp_lifecycle::State &previous_state) override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::return_type read(const rclcpp::Time &time,
                                        const rclcpp::Duration &period) override;
 
-  LOKI_HW_INTERFACE_PUBLIC
+  KVASIR_HW_INTERFACE_PUBLIC
   hardware_interface::return_type write(const rclcpp::Time &time,
                                         const rclcpp::Duration &period) override;
 
@@ -98,4 +98,4 @@ private:
   std::tuple<double, double, double> wheel_commands_;
 };
 
-} // namespace loki_hw_interface
+} // namespace kvasir_hw_interface

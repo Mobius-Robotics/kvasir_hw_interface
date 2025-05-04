@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>loki_hw_interface</name>
+  <name>kvasir_hw_interface</name>
   <version>1.0.0</version>
   <description>
-    Hardware interface package for the Loki robot using `ros2_control`. This package provides a hardware interface for controlling the Loki robot's wheels and actuators via a serial connection.
+    Hardware interface package for the Kvasir robot using `ros2_control`. This package provides a hardware interface for controlling the Kvasir robot's wheels and actuators via a serial connection.
   </description>
 
   <maintainer email="PurpleMyst@users.noreply.github.com">PurpleMyst</maintainer>

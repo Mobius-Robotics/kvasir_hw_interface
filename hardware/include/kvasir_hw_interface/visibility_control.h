@@ -19,38 +19,38 @@
  * library cannot have, but the consuming code must have inorder to link.
  */
 
-#ifndef LOKI_HW_INTERFACE__VISIBILITY_CONTROL_H_
-#define LOKI_HW_INTERFACE__VISIBILITY_CONTROL_H_
+#ifndef KVASIR_HW_INTERFACE__VISIBILITY_CONTROL_H_
+#define KVASIR_HW_INTERFACE__VISIBILITY_CONTROL_H_
 
 // This logic was borrowed (then namespaced) from the examples on the gcc wiki:
 //     https://gcc.gnu.org/wiki/Visibility
 
 #if defined _WIN32 || defined __CYGWIN__
 #ifdef __GNUC__
-#define LOKI_HW_INTERFACE_EXPORT __attribute__((dllexport))
-#define LOKI_HW_INTERFACE_IMPORT __attribute__((dllimport))
+#define KVASIR_HW_INTERFACE_EXPORT __attribute__((dllexport))
+#define KVASIR_HW_INTERFACE_IMPORT __attribute__((dllimport))
 #else
-#define LOKI_HW_INTERFACE_EXPORT __declspec(dllexport)
-#define LOKI_HW_INTERFACE_IMPORT __declspec(dllimport)
+#define KVASIR_HW_INTERFACE_EXPORT __declspec(dllexport)
+#define KVASIR_HW_INTERFACE_IMPORT __declspec(dllimport)
 #endif
-#ifdef LOKI_HW_INTERFACE_BUILDING_DLL
-#define LOKI_HW_INTERFACE_PUBLIC LOKI_HW_INTERFACE_EXPORT
+#ifdef KVASIR_HW_INTERFACE_BUILDING_DLL
+#define KVASIR_HW_INTERFACE_PUBLIC KVASIR_HW_INTERFACE_EXPORT
 #else
-#define LOKI_HW_INTERFACE_PUBLIC LOKI_HW_INTERFACE_IMPORT
+#define KVASIR_HW_INTERFACE_PUBLIC KVASIR_HW_INTERFACE_IMPORT
 #endif
-#define LOKI_HW_INTERFACE_PUBLIC_TYPE LOKI_HW_INTERFACE_PUBLIC
-#define LOKI_HW_INTERFACE_LOCAL
+#define KVASIR_HW_INTERFACE_PUBLIC_TYPE KVASIR_HW_INTERFACE_PUBLIC
+#define KVASIR_HW_INTERFACE_LOCAL
 #else
-#define LOKI_HW_INTERFACE_EXPORT __attribute__((visibility("default")))
-#define LOKI_HW_INTERFACE_IMPORT
+#define KVASIR_HW_INTERFACE_EXPORT __attribute__((visibility("default")))
+#define KVASIR_HW_INTERFACE_IMPORT
 #if __GNUC__ >= 4
-#define LOKI_HW_INTERFACE_PUBLIC __attribute__((visibility("default")))
-#define LOKI_HW_INTERFACE_LOCAL __attribute__((visibility("hidden")))
+#define KVASIR_HW_INTERFACE_PUBLIC __attribute__((visibility("default")))
+#define KVASIR_HW_INTERFACE_LOCAL __attribute__((visibility("hidden")))
 #else
-#define LOKI_HW_INTERFACE_PUBLIC
-#define LOKI_HW_INTERFACE_LOCAL
+#define KVASIR_HW_INTERFACE_PUBLIC
+#define KVASIR_HW_INTERFACE_LOCAL
 #endif
-#define LOKI_HW_INTERFACE_PUBLIC_TYPE
+#define KVASIR_HW_INTERFACE_PUBLIC_TYPE
 #endif
 
-#endif  // LOKI_HW_INTERFACE__VISIBILITY_CONTROL_H_
+#endif  // KVASIR_HW_INTERFACE__VISIBILITY_CONTROL_H_
