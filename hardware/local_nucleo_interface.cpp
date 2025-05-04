@@ -1,9 +1,4 @@
-#include <algorithm>
-#include <chrono>
-#include <cstring>
 #include <stdexcept>
-#include <thread>
-#include <span>
 
 #include <libserial/SerialPort.h>
 
@@ -61,7 +56,8 @@ void LocalNucleoInterface::send_command(char command_byte, std::span<const uint8
 
   serial_port_.WriteByte('M');
   serial_port_.WriteByte(command_byte);
-  for (uint8_t byte : data_bytes) serial_port_.WriteByte(byte);
+  for (uint8_t byte : data_bytes)
+    serial_port_.WriteByte(byte);
 }
 
 void LocalNucleoInterface::receive_data(std::span<uint8_t> buffer) {
@@ -76,23 +72,22 @@ void LocalNucleoInterface::receive_data(std::span<uint8_t> buffer) {
   }
 }
 
-template <typename T>
-void write_to_span_le(std::span<uint8_t> buffer, size_t& offset, T value) {
+template <typename T> void write_to_span_le(std::span<uint8_t> buffer, size_t &offset, T value) {
   static_assert(std::is_trivially_copyable_v<T>, "Value must be trivially copyable");
   if (buffer.size() < offset + sizeof(T)) {
     throw std::runtime_error("Buffer overflow in write_to_buffer_le");
   }
 
-  #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    std::memcpy(buffer.data() + offset, &value, sizeof(T));
-  #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    uint8_t* p = reinterpret_cast<uint8_t*>(&value);
-    for (size_t i = 0; i < sizeof(T); ++i) {
-      buffer[offset + i] = p[sizeof(T) - 1 - i];
-    }
-  #else
-    #error "Unknown byte order"
-  #endif
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  std::memcpy(buffer.data() + offset, &value, sizeof(T));
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  uint8_t *p = reinterpret_cast<uint8_t *>(&value);
+  for (size_t i = 0; i < sizeof(T); ++i) {
+    buffer[offset + i] = p[sizeof(T) - 1 - i];
+  }
+#else
+#error "Unknown byte order"
+#endif
 
   offset += sizeof(T);
 }
@@ -112,65 +107,32 @@ template <typename T> T read_from_span_le(std::span<const uint8_t> vec, size_t o
   return value;
 }
 
-void LocalNucleoInterface::set_servo_ccrs(const uint16_t ccr1, const uint16_t ccr2) {
-  std::array<uint8_t, 2 * sizeof(uint16_t)> data;
+void LocalNucleoInterface::set_servo_ccrs(const std::array<uint16_t, SERVO_COUNT> ccrs) {
+  std::array<uint8_t, SERVO_COUNT * sizeof(uint16_t)> data;
   size_t data_offset = 0;
-  write_to_span_le<uint16_t>(data, data_offset, ccr1);
-  write_to_span_le<uint16_t>(data, data_offset, ccr2);
+  for (size_t i = 0; i < SERVO_COUNT; ++i) {
+    write_to_span_le<uint16_t>(data, data_offset, ccrs[i]);
+  }
 
   send_command('s', data);
 }
 
-void LocalNucleoInterface::set_servo_angles(const double theta1, const double theta2) {
-  double ccr1 = 20000 * ((theta1 / 180.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) + MIN_SERVO_DUTY_CYCLE) / 100.0;
-  double ccr2 = 20000 * ((theta2 / 180.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) + MIN_SERVO_DUTY_CYCLE) / 100.0;
-
-  set_servo_ccrs(ccr1, ccr2);
+void LocalNucleoInterface::set_servo_angles(const std::array<double, SERVO_COUNT> thetas) {
+std::array<uint16_t, SERVO_COUNT> ccrs;
+  for (size_t i = 0; i < SERVO_COUNT; ++i) {
+    ccrs[i] = static_cast<uint16_t>(ARR * ((thetas[i] / 180.0) * (MAX_SERVO_DUTY_CYCLE - MIN_SERVO_DUTY_CYCLE) + MIN_SERVO_DUTY_CYCLE) / 100.0);
+  }
+  set_servo_ccrs(ccrs);
 }
 
-std::tuple<double, double, double, double, double, double>
-LocalNucleoInterface::read_position_and_velocity() {
-  send_command('a', {});
-
-  uint8_t data[6 * sizeof(double)];
-  receive_data(data);
-
-  double encoder1 = read_from_span_le<double>(data, 0);
-  double encoder2 = read_from_span_le<double>(data, sizeof(double));
-  double encoder3 = read_from_span_le<double>(data, 2 * sizeof(double));
-  double velocity1 = read_from_span_le<double>(data, 3 * sizeof(double));
-  double velocity2 = read_from_span_le<double>(data, 4 * sizeof(double));
-  double velocity3 = read_from_span_le<double>(data, 5 * sizeof(double));
-
-  return std::make_tuple(encoder1, encoder2, encoder3, velocity1, velocity2, velocity3);
-}
-
-void LocalNucleoInterface::set_wheel_speeds(const std::tuple<int, int, int> &speeds) {
-  int speed1 = std::get<0>(speeds);
-  int speed2 = std::get<1>(speeds);
-  int speed3 = std::get<2>(speeds);
-
-  std::array<uint8_t, 3 * sizeof(int32_t)> data;
+void LocalNucleoInterface::set_wheel_speeds(const std::array<int32_t, WHEEL_COUNT> &speeds) {
+  std::array<uint8_t, WHEEL_COUNT * sizeof(int32_t)> data;
   size_t data_offset = 0;
-  write_to_span_le<int32_t>(data, data_offset, static_cast<int32_t>(speed1));
-  write_to_span_le<int32_t>(data, data_offset, static_cast<int32_t>(speed2));
-  write_to_span_le<int32_t>(data, data_offset, static_cast<int32_t>(speed3));
+  for (size_t i = 0; i < WHEEL_COUNT; ++i) {
+    write_to_span_le<int32_t>(data, data_offset, speeds[i]);
+  }
 
   send_command('u', data);
 }
 
-void LocalNucleoInterface::stop_all_steppers() {
-  send_command('x', {});
-}
-
-void LocalNucleoInterface::print_lcd(const uint8_t line, const std::string_view msg) {
-  if (line >= 2) {
-    throw std::invalid_argument("Invalid line number. Valid lines are 0 and 1.");
-  }
-
-  std::array<uint8_t, 1 + 16> data{};
-  data[0] = line;
-  std::memcpy(data.data() + 1, msg.data(), std::min(msg.length(), static_cast<std::size_t>(16)));
-
-  send_command('l', data);
-}
+void LocalNucleoInterface::stop_all_steppers() { send_command('x', {}); }

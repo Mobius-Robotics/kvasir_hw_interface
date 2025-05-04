@@ -1,27 +1,31 @@
 #pragma once
 
-#include <libserial/SerialPort.h>
-#include <string>
-#include <string_view>
-#include <tuple>
+#include <array>
+#include <cstddef>
 #include <span>
+#include <string>
+
+#include <libserial/SerialPort.h>
 
 class LocalNucleoInterface {
 public:
+  static constexpr size_t SERVO_COUNT = 6;
+  static constexpr size_t WHEEL_COUNT = 4;
+
+  static constexpr double ARR = 20000;
+
   LocalNucleoInterface(int timeout_ms = 10);
   ~LocalNucleoInterface();
 
-  void set_servo_ccrs(const uint16_t, const uint16_t);
-  void set_servo_angles(const double, const double);
-  std::tuple<double, double, double, double, double, double> read_position_and_velocity();
-  void set_wheel_speeds(const std::tuple<int, int, int> &speeds);
-  void print_lcd(const uint8_t line, const std::string_view msg);
+  void set_servo_ccrs(const std::array<uint16_t, SERVO_COUNT> ccrs);
+  void set_servo_angles(const std::array<double, SERVO_COUNT> angles);
+  void set_wheel_speeds(const std::array<int32_t, WHEEL_COUNT> &speeds);
 
   void stop_all_steppers();
   void close();
 
-  void send_command(char command_byte, std::span<const uint8_t> data_bytes);
-  void receive_data(std::span<uint8_t> num_bytes);
+  void send_command(char, std::span<const uint8_t>);
+  void receive_data(std::span<uint8_t>);
 
 private:
   void connect();
