@@ -140,4 +140,20 @@ void LocalNucleoInterface::set_wheel_speeds(const std::array<int32_t, WHEEL_COUN
   send_command('u', data);
 }
 
+void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_dot,
+                                             const double theta_dot) {
+  std::array<int32_t, WHEEL_COUNT> wheel_speeds;
+
+  wheel_speeds[0] =
+      WHEEL_SIGNS[0] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
+  wheel_speeds[1] =
+      WHEEL_SIGNS[1] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot + WHEEL_L_SUM * theta_dot);
+  wheel_speeds[2] =
+      WHEEL_SIGNS[2] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot - WHEEL_L_SUM * theta_dot);
+  wheel_speeds[3] =
+      WHEEL_SIGNS[3] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot + WHEEL_L_SUM * theta_dot);
+
+  set_wheel_speeds(wheel_speeds);
+}
+
 void LocalNucleoInterface::stop_all_steppers() { send_command('x', {}); }
