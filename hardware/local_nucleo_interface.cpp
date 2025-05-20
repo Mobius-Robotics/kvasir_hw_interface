@@ -156,4 +156,22 @@ void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_
   set_wheel_speeds(wheel_speeds);
 }
 
+LocalNucleoInterface::Status LocalNucleoInterface::read_status() {
+  std::array<uint8_t, (2 * WHEEL_COUNT + 2) * sizeof(bool)> data;
+  size_t data_idx = 0;
+  send_command('h', {});
+  receive_data(data);
+
+  Status status{};
+  for (size_t i = 0; i < WHEEL_COUNT; ++i)
+    status.setupAndComms[i] = data[data_idx++] != 0;
+  for (size_t i = 0; i < WHEEL_COUNT; ++i)
+    status.notSetupButComms[i] = data[data_idx++] != 0;
+
+  status.pullstart = data[data_idx++] != 0;
+  status.interlock = data[data_idx++] != 0;
+
+  return status;
+}
+
 void LocalNucleoInterface::stop_all_steppers() { send_command('x', {}); }

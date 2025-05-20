@@ -30,6 +30,14 @@ public:
   /// @brief Signs to apply to wheel speeds to handle interior/exterior motor position.
   static constexpr double WHEEL_SIGNS[WHEEL_COUNT] = {-1, 1, 1, -1};
 
+  struct Status {
+    bool setupAndComms[WHEEL_COUNT];
+    bool notSetupButComms[WHEEL_COUNT];
+
+    bool pullstart;
+    bool interlock;
+  };
+
   LocalNucleoInterface(int timeout_ms = 10);
   ~LocalNucleoInterface();
 
@@ -45,6 +53,8 @@ public:
 
   /// @brief Set the body velocity of the robot.
   void set_body_velocity(const double x_dot, const double y_dot, const double theta_dot);
+
+  Status read_status();
 
   /// @brief Stop all the motors.
   void stop_all_steppers();
