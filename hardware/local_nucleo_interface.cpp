@@ -156,6 +156,14 @@ void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_
   set_wheel_speeds(wheel_speeds);
 }
 
+void LocalNucleoInterface::elevator_step(const uint8_t steps, const bool dir) {
+  std::array<uint8_t, sizeof(uint8_t) + sizeof(bool)> data{};
+  size_t data_offset = 0;
+  write_to_span_le<uint8_t>(data, data_offset, steps);
+  write_to_span_le<bool>(data, data_offset, dir);
+  send_command('e', data);
+}
+
 LocalNucleoInterface::Status LocalNucleoInterface::read_status() {
   std::array<uint8_t, (2 * WHEEL_COUNT + 2) * sizeof(bool)> data;
   size_t data_idx = 0;

@@ -54,6 +54,10 @@ public:
   /// @brief Set the body velocity of the robot.
   void set_body_velocity(const double x_dot, const double y_dot, const double theta_dot);
 
+  /// @brief Step the elevator motor in a given direction.
+  void elevator_step(const uint8_t steps, const bool dir);
+
+  /// @brief Read the status of the Nucleo board.
   Status read_status();
 
   /// @brief Stop all the motors.
