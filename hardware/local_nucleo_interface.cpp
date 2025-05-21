@@ -144,10 +144,10 @@ void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_
                                              const double theta_dot) {
   std::array<int32_t, WHEEL_COUNT> wheel_speeds;
 
-  constexpr size_t WHEEL_FRONT_LEFT = 0b10;
-  constexpr size_t WHEEL_FRONT_RIGHT = 0b11;
-  constexpr size_t WHEEL_BACK_RIGHT = 0b00;
-  constexpr size_t WHEEL_BACK_LEFT = 0b01;
+  constexpr size_t WHEEL_FRONT_LEFT = 0b11;
+  constexpr size_t WHEEL_FRONT_RIGHT = 0b01;
+  constexpr size_t WHEEL_BACK_RIGHT = 0b10;
+  constexpr size_t WHEEL_BACK_LEFT = 0b00;
 
   wheel_speeds[WHEEL_FRONT_LEFT] =
       WHEEL_SIGNS[WHEEL_FRONT_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
