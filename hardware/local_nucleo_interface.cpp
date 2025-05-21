@@ -144,14 +144,19 @@ void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_
                                              const double theta_dot) {
   std::array<int32_t, WHEEL_COUNT> wheel_speeds;
 
-  wheel_speeds[0] =
-      WHEEL_SIGNS[0] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
-  wheel_speeds[1] =
-      WHEEL_SIGNS[1] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot + WHEEL_L_SUM * theta_dot);
-  wheel_speeds[2] =
-      WHEEL_SIGNS[2] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot - WHEEL_L_SUM * theta_dot);
-  wheel_speeds[3] =
-      WHEEL_SIGNS[3] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot + WHEEL_L_SUM * theta_dot);
+  constexpr size_t WHEEL_FRONT_LEFT = 0b10;
+  constexpr size_t WHEEL_FRONT_RIGHT = 0b11;
+  constexpr size_t WHEEL_BACK_RIGHT = 0b00;
+  constexpr size_t WHEEL_BACK_LEFT = 0b01;
+
+  wheel_speeds[WHEEL_FRONT_LEFT] =
+      WHEEL_SIGNS[WHEEL_FRONT_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
+  wheel_speeds[WHEEL_FRONT_RIGHT] =
+      WHEEL_SIGNS[WHEEL_FRONT_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot + WHEEL_L_SUM * theta_dot);
+  wheel_speeds[WHEEL_BACK_RIGHT] =
+      WHEEL_SIGNS[WHEEL_BACK_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot - WHEEL_L_SUM * theta_dot);
+  wheel_speeds[WHEEL_BACK_LEFT] =
+      WHEEL_SIGNS[WHEEL_BACK_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot + WHEEL_L_SUM * theta_dot);
 
   set_wheel_speeds(wheel_speeds);
 }
