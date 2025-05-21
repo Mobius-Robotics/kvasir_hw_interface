@@ -149,17 +149,18 @@ void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_
   constexpr size_t WHEEL_BACK_RIGHT = 0b10;
   constexpr size_t WHEEL_BACK_LEFT = 0b00;
 
+  // Signs for front +x and right +y, with z positive CCW
   // x_dot:     + + + +
-  // y_dot:     - + - +
+  // y_dot:     + - + -
   // theta_dot: - + + -
   wheel_speeds[WHEEL_FRONT_LEFT] =
-      WHEEL_SIGNS[WHEEL_FRONT_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
+      WHEEL_SIGNS[WHEEL_FRONT_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot - WHEEL_L_SUM * theta_dot);
   wheel_speeds[WHEEL_FRONT_RIGHT] =
-      WHEEL_SIGNS[WHEEL_FRONT_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot + WHEEL_L_SUM * theta_dot);
+      WHEEL_SIGNS[WHEEL_FRONT_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot + WHEEL_L_SUM * theta_dot);
   wheel_speeds[WHEEL_BACK_RIGHT] =
-      WHEEL_SIGNS[WHEEL_BACK_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot + WHEEL_L_SUM * theta_dot);
+      WHEEL_SIGNS[WHEEL_BACK_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot + WHEEL_L_SUM * theta_dot);
   wheel_speeds[WHEEL_BACK_LEFT] =
-      WHEEL_SIGNS[WHEEL_BACK_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot - WHEEL_L_SUM * theta_dot);
+      WHEEL_SIGNS[WHEEL_BACK_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
 
   set_wheel_speeds(wheel_speeds);
 }
