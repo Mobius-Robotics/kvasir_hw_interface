@@ -28,7 +28,7 @@ public:
   static constexpr double ARR = 20000;
 
   /// @brief Signs to apply to wheel speeds to handle interior/exterior motor position.
-  static constexpr double WHEEL_SIGNS[WHEEL_COUNT] = {-1, 1, 1, -1};
+  static constexpr double WHEEL_SIGNS[WHEEL_COUNT] = {1, -1, -1, 1};
 
   struct Status {
     bool setupAndComms[WHEEL_COUNT];
