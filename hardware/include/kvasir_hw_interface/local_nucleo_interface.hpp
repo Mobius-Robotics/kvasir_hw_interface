@@ -7,9 +7,40 @@
 
 #include <libserial/SerialPort.h>
 
+namespace Tmc {
+   struct Status {
+        uint32_t over_temperature_warning :1;
+        uint32_t over_temperature_shutdown :1;
+        uint32_t short_to_ground_a :1;
+        uint32_t short_to_ground_b :1;
+        uint32_t low_side_short_a :1;
+        uint32_t low_side_short_b :1;
+        uint32_t open_load_a :1;
+        uint32_t open_load_b :1;
+        uint32_t over_temperature_120c :1;
+        uint32_t over_temperature_143c :1;
+        uint32_t over_temperature_150c :1;
+        uint32_t over_temperature_157c :1;
+        uint32_t reserved0 :4;
+        uint32_t current_scaling :5;
+        uint32_t reserved1 :9;
+        uint32_t stealth_chop_mode :1;
+        uint32_t standstill :1;
+    };
+
+    struct GlobalStatus {
+        uint32_t reset :1;
+        uint32_t drv_err :1;
+        uint32_t uv_cp :1;
+        uint32_t reserved :29;
+    };
+}
+
 class LocalNucleoInterface {
 public:
-  static constexpr size_t SERVO_COUNT = 6;
+  static constexpr size_t TIM1_SERVOS = 4;
+  static constexpr size_t TIM2_SERVOS = 2;
+  static constexpr size_t SERVO_COUNT = TIM1_SERVOS + TIM2_SERVOS;
   static constexpr size_t WHEEL_COUNT = 4;
 
   /// @brief The radius of the wheel in meters.
@@ -30,12 +61,15 @@ public:
   /// @brief Signs to apply to wheel speeds to handle interior/exterior motor position.
   static constexpr double WHEEL_SIGNS[WHEEL_COUNT] = {1, -1, -1, 1};
 
-  struct Status {
-    bool setupAndComms[WHEEL_COUNT];
-    bool notSetupButComms[WHEEL_COUNT];
+  struct __attribute__((packed)) Status {
+      bool setupAndComms[WHEEL_COUNT];
+      bool notSetupButComms[WHEEL_COUNT];
 
-    bool pullstart;
-    bool interlock;
+      Tmc::Status driverStatuses[WHEEL_COUNT];
+      Tmc::GlobalStatus driverGlobalStatuses[WHEEL_COUNT];
+
+      bool pullstart;
+      bool interlock;
   };
 
   LocalNucleoInterface(int timeout_ms = 10);
@@ -56,6 +90,18 @@ public:
 
   /// @brief Step the elevator motor in a given direction.
   void elevator_step(const uint8_t steps, const bool dir);
+
+  /// @brief Extend the plank arm.
+  void extend_arm();
+
+  /// @brief Retract the plank arm.
+  void retract_arm();
+
+  /// @brief Extend the tin pushers, specifying which ones to extend.
+  void extend_pusher(bool pushers[TIM1_SERVOS]);
+
+  /// @brief Retract the tin pushers.
+  void retract_pusher();
 
   /// @brief Read the status of the Nucleo board.
   Status read_status();

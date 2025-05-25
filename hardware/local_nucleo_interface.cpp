@@ -153,14 +153,14 @@ void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_
   // x_dot:     + + + +
   // y_dot:     + - + -
   // theta_dot: - + + -
-  wheel_speeds[WHEEL_FRONT_LEFT] =
-      WHEEL_SIGNS[WHEEL_FRONT_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot - WHEEL_L_SUM * theta_dot);
-  wheel_speeds[WHEEL_FRONT_RIGHT] =
-      WHEEL_SIGNS[WHEEL_FRONT_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot + WHEEL_L_SUM * theta_dot);
-  wheel_speeds[WHEEL_BACK_RIGHT] =
-      WHEEL_SIGNS[WHEEL_BACK_RIGHT] * WHEEL_INVERSE_RADIUS * (x_dot + y_dot + WHEEL_L_SUM * theta_dot);
-  wheel_speeds[WHEEL_BACK_LEFT] =
-      WHEEL_SIGNS[WHEEL_BACK_LEFT] * WHEEL_INVERSE_RADIUS * (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
+  wheel_speeds[WHEEL_FRONT_LEFT] = WHEEL_SIGNS[WHEEL_FRONT_LEFT] * WHEEL_INVERSE_RADIUS *
+                                   (x_dot + y_dot - WHEEL_L_SUM * theta_dot);
+  wheel_speeds[WHEEL_FRONT_RIGHT] = WHEEL_SIGNS[WHEEL_FRONT_RIGHT] * WHEEL_INVERSE_RADIUS *
+                                    (x_dot - y_dot + WHEEL_L_SUM * theta_dot);
+  wheel_speeds[WHEEL_BACK_RIGHT] = WHEEL_SIGNS[WHEEL_BACK_RIGHT] * WHEEL_INVERSE_RADIUS *
+                                   (x_dot + y_dot + WHEEL_L_SUM * theta_dot);
+  wheel_speeds[WHEEL_BACK_LEFT] = WHEEL_SIGNS[WHEEL_BACK_LEFT] * WHEEL_INVERSE_RADIUS *
+                                  (x_dot - y_dot - WHEEL_L_SUM * theta_dot);
 
   set_wheel_speeds(wheel_speeds);
 }
@@ -173,6 +173,21 @@ void LocalNucleoInterface::elevator_step(const uint8_t steps, const bool dir) {
   send_command('e', data);
 }
 
+void LocalNucleoInterface::extend_arm() { send_command('o', {}); }
+
+void LocalNucleoInterface::retract_arm() { send_command('i', {}); }
+
+void LocalNucleoInterface::extend_pusher(bool pushers[TIM1_SERVOS]) {
+  std::array<uint8_t, TIM1_SERVOS * sizeof(bool)> data;
+  size_t data_offset = 0;
+  for (size_t i = 0; i < TIM1_SERVOS; ++i) {
+    write_to_span_le<bool>(data, data_offset, pushers[i]);
+  }
+  send_command('T', data);
+}
+
+void LocalNucleoInterface::retract_pusher() { send_command('t', {}); }
+
 LocalNucleoInterface::Status LocalNucleoInterface::read_status() {
   std::array<uint8_t, (2 * WHEEL_COUNT + 2) * sizeof(bool)> data;
   size_t data_idx = 0;
@@ -184,6 +199,20 @@ LocalNucleoInterface::Status LocalNucleoInterface::read_status() {
     status.setupAndComms[i] = data[data_idx++] != 0;
   for (size_t i = 0; i < WHEEL_COUNT; ++i)
     status.notSetupButComms[i] = data[data_idx++] != 0;
+
+  for (size_t i = 0; i < WHEEL_COUNT; ++i) {
+    static_assert(sizeof(Tmc::Status) == sizeof(uint32_t),
+                  "Tmc::Status must be 4 bytes for this code to work");
+    auto datum = read_from_span_le<uint32_t>(data, data_idx);
+    std::memcpy(&status.driverStatuses[i], &datum, sizeof(Tmc::Status));
+  }
+
+  for (size_t i = 0; i < WHEEL_COUNT; ++i) {
+    static_assert(sizeof(Tmc::GlobalStatus) == sizeof(uint32_t),
+                  "Tmc::GlobalStatus must be 4 bytes for this code to work");
+    auto datum = read_from_span_le<uint32_t>(data, data_idx);
+    std::memcpy(&status.driverGlobalStatuses[i], &datum, sizeof(Tmc::GlobalStatus));
+  }
 
   status.pullstart = data[data_idx++] != 0;
   status.interlock = data[data_idx++] != 0;
