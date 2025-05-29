@@ -165,11 +165,10 @@ void LocalNucleoInterface::set_body_velocity(const double x_dot, const double y_
   set_wheel_speeds(wheel_speeds);
 }
 
-void LocalNucleoInterface::elevator_step(const uint8_t steps, const bool dir) {
-  std::array<uint8_t, sizeof(uint8_t) + sizeof(bool)> data{};
+void LocalNucleoInterface::move_elevator(const int16_t position) {
+  std::array<uint8_t, sizeof(int16_t)> data{};
   size_t data_offset = 0;
-  write_to_span_le<uint8_t>(data, data_offset, steps);
-  write_to_span_le<bool>(data, data_offset, dir);
+  write_to_span_le<int16_t>(data, data_offset, position);
   send_command('e', data);
 }
 
@@ -189,33 +188,17 @@ void LocalNucleoInterface::extend_pusher(bool pushers[TIM1_SERVOS]) {
 void LocalNucleoInterface::retract_pusher() { send_command('t', {}); }
 
 LocalNucleoInterface::Status LocalNucleoInterface::read_status() {
-  std::array<uint8_t, (2 * WHEEL_COUNT + 2) * sizeof(bool)> data;
+  std::array<uint8_t, 4 * sizeof(bool)> data;
   size_t data_idx = 0;
   send_command('h', {});
   receive_data(data);
 
   Status status{};
-  for (size_t i = 0; i < WHEEL_COUNT; ++i)
-    status.setupAndComms[i] = data[data_idx++] != 0;
-  for (size_t i = 0; i < WHEEL_COUNT; ++i)
-    status.notSetupButComms[i] = data[data_idx++] != 0;
-
-  for (size_t i = 0; i < WHEEL_COUNT; ++i) {
-    static_assert(sizeof(Tmc::Status) == sizeof(uint32_t),
-                  "Tmc::Status must be 4 bytes for this code to work");
-    auto datum = read_from_span_le<uint32_t>(data, data_idx);
-    std::memcpy(&status.driverStatuses[i], &datum, sizeof(Tmc::Status));
-  }
-
-  for (size_t i = 0; i < WHEEL_COUNT; ++i) {
-    static_assert(sizeof(Tmc::GlobalStatus) == sizeof(uint32_t),
-                  "Tmc::GlobalStatus must be 4 bytes for this code to work");
-    auto datum = read_from_span_le<uint32_t>(data, data_idx);
-    std::memcpy(&status.driverGlobalStatuses[i], &datum, sizeof(Tmc::GlobalStatus));
-  }
 
   status.pullstart = data[data_idx++] != 0;
   status.interlock = data[data_idx++] != 0;
+  status.endstops[0] = data[data_idx++] != 0;
+  status.endstops[1] = data[data_idx++] != 0;
 
   return status;
 }

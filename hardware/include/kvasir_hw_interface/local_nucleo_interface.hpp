@@ -7,35 +7,6 @@
 
 #include <libserial/SerialPort.h>
 
-namespace Tmc {
-   struct Status {
-        uint32_t over_temperature_warning :1;
-        uint32_t over_temperature_shutdown :1;
-        uint32_t short_to_ground_a :1;
-        uint32_t short_to_ground_b :1;
-        uint32_t low_side_short_a :1;
-        uint32_t low_side_short_b :1;
-        uint32_t open_load_a :1;
-        uint32_t open_load_b :1;
-        uint32_t over_temperature_120c :1;
-        uint32_t over_temperature_143c :1;
-        uint32_t over_temperature_150c :1;
-        uint32_t over_temperature_157c :1;
-        uint32_t reserved0 :4;
-        uint32_t current_scaling :5;
-        uint32_t reserved1 :9;
-        uint32_t stealth_chop_mode :1;
-        uint32_t standstill :1;
-    };
-
-    struct GlobalStatus {
-        uint32_t reset :1;
-        uint32_t drv_err :1;
-        uint32_t uv_cp :1;
-        uint32_t reserved :29;
-    };
-}
-
 class LocalNucleoInterface {
 public:
   static constexpr size_t TIM1_SERVOS = 4;
@@ -62,14 +33,9 @@ public:
   static constexpr double WHEEL_SIGNS[WHEEL_COUNT] = {1, -1, -1, 1};
 
   struct __attribute__((packed)) Status {
-      bool setupAndComms[WHEEL_COUNT];
-      bool notSetupButComms[WHEEL_COUNT];
-
-      Tmc::Status driverStatuses[WHEEL_COUNT];
-      Tmc::GlobalStatus driverGlobalStatuses[WHEEL_COUNT];
-
       bool pullstart;
       bool interlock;
+      bool endstops[2];
   };
 
   LocalNucleoInterface(int timeout_ms = 10);
@@ -88,8 +54,8 @@ public:
   /// @brief Set the body velocity of the robot.
   void set_body_velocity(const double x_dot, const double y_dot, const double theta_dot);
 
-  /// @brief Step the elevator motor in a given direction.
-  void elevator_step(const uint8_t steps, const bool dir);
+  /// @brief Move the elevator to a specific position.
+  void move_elevator(const int16_t position);
 
   /// @brief Extend the plank arm.
   void extend_arm();
